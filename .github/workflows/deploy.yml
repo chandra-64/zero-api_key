@@ -8,7 +8,7 @@ on:
 env:
   PROJECT_ID: ${{secrets.GCP_PROJECT_ID}}
   REGION: 'us-central1'          
-  SERVICE_NAME: 'zero-key_api'
+  SERVICE_NAME: 'zero-key-api'
   IMAGE_NAME: 'zero-key'
 
   # Identity Bridge address from GCP setup
