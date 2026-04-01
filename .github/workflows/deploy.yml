@@ -1,0 +1,62 @@
+name: ZERO-KEY_API
+
+on:
+  push:
+    branches:
+      - main  # Only deploy when code is pushed to the main branch
+
+env:
+  PROJECT_ID: ${{secrets.GCP_PROJECT_ID}}
+  REGION: 'us-central1'          
+  SERVICE_NAME: 'zero-key_api'
+  IMAGE_NAME: 'zero-key-api'
+
+  # Identity Bridge address from GCP setup
+  WIF_PROVIDER: ${{vars.GCP_WIF_PROVIDER}}
+  WIF_SERVICE_ACCOUNT: ${{vars.GCP_WIF_SERVICE_ACCOUNT}}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # Add 'id-token' permissions to allow the OIDC handshake
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Authenticate with Google Cloud using WIF (Workload identity fedration)
+      - id: 'auth' 
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+
+      # 2. Set up Docker to use Google Cloud credentials
+      - name: 'Docker Auth'
+        run: |-
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      # Set up google cloud cli 
+      
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      # 3. Build and Push the Docker Image
+      - name: 'Build and Push Container'
+        run: |-
+          docker build -t "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" .
+          docker push "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+
+      # 4. Deploy the image to Cloud Run
+      - name: 'Deploy to Cloud Run'
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          flags: '--allow-unauthenticated'
