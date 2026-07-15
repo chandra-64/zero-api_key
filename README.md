@@ -28,6 +28,15 @@ Unlike traditional methods that rely on long-lived Service Account JSON keys, th
 
 ---
 
+## SCREENSHORT
+
+![s1](assets/s1.jpg)
+
+![s2](assets/s2.jpg)
+
+![s3](assets/s3.jpg)
+
+![s4](assets/s4.jpg)
 ## CI/CD Pipeline Flow
 
 Every push to the `main` branch triggers:
