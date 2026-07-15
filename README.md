@@ -1,6 +1,8 @@
 # ZERO-KEY_API: Secure CI/CD to Google Cloud
 
-# DIAGRAM
+# Architecutre Diagram
+
+![Architecutre Diagram](assets/diagram.png)
 A high-performance Python API deployed to Google Cloud Run using a fully automated, Zero-Key CI/CD pipeline via GitHub Actions and Workload Identity Federation (WIF).
 
 ---
